@@ -37,7 +37,7 @@ public class AccountsService {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     String.format("Invalid account type: " +
-                        "Expected TRY, USD or UAX but got %s", request.getType())
+                        "Expected TRY, USD or XAU but got %s", request.getType())
             );
         }
 
