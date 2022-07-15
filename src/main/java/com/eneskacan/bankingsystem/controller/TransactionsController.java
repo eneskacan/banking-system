@@ -3,6 +3,7 @@ package com.eneskacan.bankingsystem.controller;
 import com.eneskacan.bankingsystem.dto.generic.AccountDTO;
 import com.eneskacan.bankingsystem.dto.request.DepositCreationRequest;
 import com.eneskacan.bankingsystem.dto.request.TransferCreationRequest;
+import com.eneskacan.bankingsystem.dto.response.ErrorResponse;
 import com.eneskacan.bankingsystem.service.TransactionsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -32,7 +33,7 @@ public class TransactionsController {
         } catch (ResponseStatusException e) {
             return ResponseEntity
                     .status(e.getStatus())
-                    .body(e.getReason());
+                    .body(new ErrorResponse(e.getReason()));
         }
     }
 
@@ -51,7 +52,7 @@ public class TransactionsController {
         } catch (ResponseStatusException e) {
             return ResponseEntity
                     .status(e.getStatus())
-                    .body(e.getReason());
+                    .body(new ErrorResponse(e.getReason()));
         }
     }
 }

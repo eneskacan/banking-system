@@ -3,6 +3,7 @@ package com.eneskacan.bankingsystem.controller;
 import com.eneskacan.bankingsystem.dto.generic.AccountDTO;
 import com.eneskacan.bankingsystem.dto.request.AccountCreationRequest;
 import com.eneskacan.bankingsystem.dto.response.AccountCreationResponse;
+import com.eneskacan.bankingsystem.dto.response.ErrorResponse;
 import com.eneskacan.bankingsystem.service.AccountsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -31,7 +32,7 @@ public class AccountsController {
         } catch (ResponseStatusException e) {
             return ResponseEntity
                     .status(e.getStatus())
-                    .body(e.getReason());
+                    .body(new ErrorResponse(e.getReason()));
         }
     }
 
