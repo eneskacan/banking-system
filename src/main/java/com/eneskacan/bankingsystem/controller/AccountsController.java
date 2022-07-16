@@ -6,9 +6,11 @@ import com.eneskacan.bankingsystem.dto.response.AccountCreationResponse;
 import com.eneskacan.bankingsystem.dto.response.ErrorResponse;
 import com.eneskacan.bankingsystem.service.AccountsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestController
@@ -37,10 +39,20 @@ public class AccountsController {
     }
 
     @GetMapping("/{accountNumber}")
-    public ResponseEntity<AccountDTO> getAccount(@PathVariable String accountNumber) {
+    @ResponseBody
+    public ResponseEntity<?> getAccount(@PathVariable String accountNumber, WebRequest request) {
         AccountDTO account = accountsService.getAccount(accountNumber);
+
+        // Check if account is modified
+        if(request.checkNotModified(account.getLastUpdated())) {
+            return ResponseEntity
+                    .status(HttpStatus.NOT_MODIFIED)
+                    .build();
+        }
+
         return ResponseEntity
                 .ok()
+                .cacheControl(CacheControl.noCache())
                 .lastModified(account.getLastUpdated())
                 .body(account);
     }
