@@ -40,6 +40,20 @@ public final class AccountMapper {
                 .build();
     }
 
+    // Transforms Account DTO to Account object
+    public static Account toAccount(AccountDTO dto) {
+        return Account.builder()
+                .accountNumber(dto.getAccountNumber())
+                .name(dto.getName())
+                .surname(dto.getSurname())
+                .email(dto.getEmail())
+                .idNumber(dto.getIdNumber())
+                .accountType(dto.getAccountType())
+                .balance(dto.getBalance())
+                .lastUpdated(dto.getLastUpdated())
+                .build();
+    }
+
     // Transforms Account object to Account DTO
     public static AccountDTO toDto(Account a) {
         return AccountDTO.builder()

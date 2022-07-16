@@ -158,4 +158,5 @@ If request is successful, returns a JSON array in the following format:
 - [White House Web API Standards](https://github.com/WhiteHouse/api-standards)
 - [Exception Handling for REST API](https://medium.com/@sampathsl/exception-handling-for-rest-api-with-spring-boot-c5d5ba928f5b) 
 - [Intro to Apache Kafka with Spring](https://www.baeldung.com/spring-kafka)
+- [Spring Boot In Memory Caching](https://medium.com/tech-it-out/spring-boot-in-memory-caching-f2327f9bfdd6)
 - [Patika.dev](https://www.patika.dev/tr)

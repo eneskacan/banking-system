@@ -9,6 +9,8 @@ import com.eneskacan.bankingsystem.repository.AccountsRepository;
 import com.eneskacan.bankingsystem.dto.response.AccountCreationResponse;
 import com.eneskacan.bankingsystem.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -61,8 +63,31 @@ public class AccountsService {
         throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create account");
     }
 
+    @Cacheable(cacheNames = {"accounts"}, key = "#accountNumber")
     public AccountDTO getAccount(String accountNumber) {
+        simulateBackendCall();
         Account account = accountsRepository.getAccount(accountNumber);
         return AccountMapper.toDto(account);
+    }
+
+    @CachePut(cacheNames = {"accounts"}, key="#dto.getAccountNumber()")
+    public AccountDTO updateAccount(AccountDTO dto) {
+        // Update account details
+        Account account = AccountMapper.toAccount(dto);
+        if(accountsRepository.saveOrUpdateAccount(account)) {
+            return dto;
+        }
+
+        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update account details");
+    }
+
+    // This method will pause main thread for 5 seconds
+    private void simulateBackendCall() {
+        try {
+            System.out.println("------------- Going to sleep for 5 seconds to simulate Backend Delay -----------");
+            Thread.sleep(5 * 1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 }

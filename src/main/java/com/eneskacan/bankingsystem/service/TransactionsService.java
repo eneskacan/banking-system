@@ -7,7 +7,6 @@ import com.eneskacan.bankingsystem.mapper.AccountMapper;
 import com.eneskacan.bankingsystem.mapper.TransactionMapper;
 import com.eneskacan.bankingsystem.model.Account;
 import com.eneskacan.bankingsystem.model.AssetTypes;
-import com.eneskacan.bankingsystem.repository.AccountsRepository;
 import com.eneskacan.bankingsystem.util.DateUtil;
 import com.eneskacan.bankingsystem.util.HttpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +19,7 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class TransactionsService {
 
-    private final AccountsRepository accountsRepository;
+    private final AccountsService accountsService;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
     private double USD_TRY;
@@ -30,16 +29,16 @@ public class TransactionsService {
     private String accessToken;
 
     @Autowired
-    public TransactionsService(AccountsRepository accountsRepository, KafkaTemplate<String, String> kafkaTemplate) {
-        this.accountsRepository = accountsRepository;
+    public TransactionsService(AccountsService accountsService, KafkaTemplate<String, String> kafkaTemplate) {
+        this.accountsService = accountsService;
         this.kafkaTemplate = kafkaTemplate;
     }
 
     public AccountDTO deposit(String accountNumber, double amount) {
-        Account account = accountsRepository.getAccount(accountNumber);
+        AccountDTO accountDTO = accountsService.getAccount(accountNumber);
 
         // Check if deposit accounts are valid
-        if(account == null) {
+        if(accountDTO == null) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Account number is invalid"
@@ -51,19 +50,21 @@ public class TransactionsService {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     String.format("Deposit amount is not valid: %s %s",
-                            amount, account.getAccountType())
+                            amount, accountDTO.getAccountType())
             );
         }
 
         // Update account balance
+        Account account = AccountMapper.toAccount(accountDTO);
         account.deposit(amount);
+        accountDTO = AccountMapper.toDto(account);
 
         // Update last update date
         long now = DateUtil.getTimestamp();
         account.setLastUpdated(now);
 
         // Save updated account
-        accountsRepository.saveOrUpdateAccount(account);
+        accountsService.updateAccount(accountDTO);
 
         // Log
         DepositDTO deposit = DepositDTO.builder()
@@ -79,11 +80,11 @@ public class TransactionsService {
     }
 
     public AccountDTO transfer(String accountNumber, double amount, String receiverAccountNumber) {
-        Account sender = accountsRepository.getAccount(accountNumber);
-        Account receiver = accountsRepository.getAccount(receiverAccountNumber);
+        AccountDTO senderDTO = accountsService.getAccount(accountNumber);
+        AccountDTO receiverDTO = accountsService.getAccount(receiverAccountNumber);
 
         // Check if sender and receiver accounts are valid
-        if(sender == null || receiver == null) {
+        if(senderDTO == null || receiverDTO == null) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     "Account number is invalid"
@@ -95,24 +96,24 @@ public class TransactionsService {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
                     String.format("Transfer amount is not valid: %s %s",
-                            amount, sender.getAccountType())
+                            amount, senderDTO.getAccountType())
             );
         }
 
         // Check if sender has sufficient funds
-        if(sender.getBalance() < amount) {
+        if(senderDTO.getBalance() < amount) {
             throw new ResponseStatusException(
                     HttpStatus.UNPROCESSABLE_ENTITY,
                     String.format("Sender account does not have enough funds: %s %s",
-                            sender.getBalance(), sender.getAccountType())
+                            senderDTO.getBalance(), senderDTO.getAccountType())
             );
         }
 
         // Convert amount if accounts have different asset types
         double exchangeRate = 1;
-        if(!sender.getAccountType().equals(receiver.getAccountType())) {
-            AssetTypes base = sender.getAccountType();
-            AssetTypes to = receiver.getAccountType();
+        if(!senderDTO.getAccountType().equals(receiverDTO.getAccountType())) {
+            AssetTypes base = senderDTO.getAccountType();
+            AssetTypes to = receiverDTO.getAccountType();
 
             // Get latest exchange rates
             updateExchangeRates();
@@ -126,18 +127,24 @@ public class TransactionsService {
             if(to.equals(AssetTypes.XAU)) exchangeRate /= XAU_TRY;
         }
 
-        // Update account balances
-        sender.withdraw(amount);
-        receiver.deposit(amount * exchangeRate);
-
-        // Update last update dates
+        // Get current time
         long now = DateUtil.getTimestamp();
+
+        // Reduce sender account balance
+        Account sender = AccountMapper.toAccount(senderDTO);
+        sender.withdraw(amount);
         sender.setLastUpdated(now);
+        senderDTO = AccountMapper.toDto(sender);
+
+        // Increase receiver account balance
+        Account receiver = AccountMapper.toAccount(receiverDTO);
+        receiver.deposit(amount * exchangeRate);
         receiver.setLastUpdated(now);
+        receiverDTO = AccountMapper.toDto(receiver);
 
         // Save updated accounts
-        accountsRepository.saveOrUpdateAccount(sender);
-        accountsRepository.saveOrUpdateAccount(receiver);
+        accountsService.updateAccount(senderDTO);
+        accountsService.updateAccount(receiverDTO);
 
         // Log
         TransferDTO transfer = TransferDTO.builder()
