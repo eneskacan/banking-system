@@ -1,242 +1,161 @@
-## Due Jul 14, 2022, 23:59
+# Banking System
 
-# BANKING SYSTEM
-Arkadaşlar merhaba, bu ödevimizde Spring Boot webservices(REST), Dosya İşlemleri ve Apache Kafka kullanarak basit bir bankacılık uygulaması geliştireceğiz.
+![Publish Docker Image](https://github.com/eneskacan/banking-system/actions/workflows/publish-docker-image.yml/badge.svg)
 
-Ödevimizde hesap yaratma, hesaba para yatırma, para transferi yapma, yapılan işlemlere dair loglama yapmak gibi işlemlerimiz olacaktır. 
+Banking System is a simple web service for simulating simple operations including creating accounts, depositing, and transferring assets. To run the app, it is required to generate a [CollectAPI](https://collectapi.com/api/imdb/imdb-api) access token, and [Kafka](https://kafka.apache.org/documentation/) must be up and running. To download and install Kafka, please refer to the official guide [here](https://kafka.apache.org/quickstart), or [here](https://www.baeldung.com/ops/kafka-docker-setup) for setup with Docker.
 
-Yapılan işlemlerin loglanmasını **KAFKA** aracılığıyla yapacağız.
+## Docker
 
-Webservis istek ve cevapları tamamen **JSON** üzerinden yapılacaktır. **REST'in şartlarına (HTTP methods, HTTP status codes, URI structure, format)** uyulması bekliyorum.
+The easiest way to run this application is via Docker. To install Docker, see [here](https://docs.docker.com/). Once you have Docker installed and [working](https://docs.docker.com/get-started/#test-docker-installation), you can easily pull and start the Docker image.
 
-İşlemlere tek tek bakacak olursak
-
-### Webservice 1 ###
-
-Birinci webservisimiz hesap yaratma üstüne olacaktır. Bir hesap yaratılırken kullanıcıdan isim, soyisim, email adresi, tc kimlik numarası ve hesap türü bilgisini alacağız. Yani servisimize şu şekilde bir istek gelecektir.
-```json
-    {
-        "name" : "Abdullah",
-        "surname" : "Yavuz",
-        "email" : "bootcamp@bootcamp.com",
-        "tc" : "12121212121",
-        "type" : "TL"
-    }
+```bash
+  docker run -e collect.api.token="apikey <your-token-here>" -e kafka.bootstrap.address="localhost:9092" -p 8080:8080 eneskacan/banking-system
 ```
 
-Buradak hesap türü üç farklı şekilde olabilir.
-* Dolar
-* TL
-* Altın (Gram cinsinden birimlenecek)
+## Installation
 
-istek bize geldikten sonra sayısal ve 10 basamaktan oluşan random bir hesap numarası oluşturacağız. Ve bir dosyaya(accounts.txt mesela) veya dosya ismini accountNumber şeklinde belirleyerek her bir accountu kendine özer bir dosyaya tüm detaylarıyla kaydedeceğiz.
+Clone the project
 
-Accountların tüm detayları demek istekten aldığımız değerler, bizim ürettiğimiz accountNumber, account balance'i(bakiye) ve accountta son güncellemenin ne zaman yapıldığına dair tutuğumuz zaman demek oluyor. **Accountlar her güncellendiğinde son güncelleme tarihih bilgisi o an olarak güncellemenizi istiyorum.**
-
-Bunları dosyaya; geçen ödevdeki gibi virgüllerle veya boşluklarla ayırarak satır satır kaydedebilirsiniz.
-
-```
-	accountNumber,name,surname,email,tc,type,balance,lastUpdateDate
-```
-Hesabın bakiyesi(balance) sıfırdan başlayacaktır.
-
-#### ÖNEMLI NOKTALAR ####
-* Servisimize gelen dataların doğruluğundan emin olmalıyız arkadaşlar, type kısmında belirttiğim üç tanesinden farklı bir type gelirse kullanıcıya hata mesajı dönmenizi istiyorum. Hata mesajı dönerken uygun HTTP status kodunu kullanmanızı bekliyorum.(4xx'lerden birisi)
-```json
-{
-    "message" : "Invalid Account Type: " + "inputtan gelen account type"
-}
+```bash
+  git clone https://github.com/eneskacan/banking-system.git
 ```
 
-Spring boot tarafından bakarsak controller içindeki actionumuzda
-```
-        @RequestMapping(path = "size bırakıyorum", method = "size bırakıyorum")
-	public ResponseEntity<> createAccount(@RequestBody AccountCreateRequest request){
-		
-	}
-```
-şeklinde bir methodumuz olacak. Hatırlayın **JSON** gelen istekleri okumak için isteğe özel bir sınıf yaratıp istekteki parametrelere karşılık sınıfta propertyler oluşturuyorduk. **@RequestBody** annotationu ile de gelen **JSON** isteğin objeye maplenmesini sağlıyorduk.
+Update access token in the [application.properties](src/main/resources/application.properties) file
 
-**AccountCreateRequest** sınıfımız buna göre şu şekilde olacaktır.
+```bash
+  collect.api.token=apikey <your-token-here>
 ```
-    public class AccountCreateRequest {
-    	
-    	private String name;
-    	private String surname;
-    	private String email;
-    	private String tc;
-    	private String type;
-    	
-    	//default constructor, getters and setters
-    }
+
+Go to the project directory
+
+```bash
+  cd banking-system
 ```
-İşlemi eğer başarılı şekilde yerine getirebilirsek kullanıcıya şöyle bir mesaj dönmenizi istiyorum.
+
+Install and start
+
+```bash
+  mvn spring-boot:run
+```
+
+## API Reference
+
+#### Create account
+
+```http
+POST /api/accounts
+```
 
 ```json
 {
-    "message" : "Account Created",
-    "accountNumber" : "random urettiğiniz numara"
+  "name" : "Abdullah",
+  "surname" : "Yavuz",
+  "email" : "abdullah@bootcamp.com",
+  "idNumber" : "12121212121",
+  "type" : "TRY"
 }
 ```
 
-Önemli diğer bir noktada cevaplara da cevap yapısına uygun sınıflar geliştirebileceğimiz arkadaşlar. Yani bu cevabı verebilmek için **AccountCreateSuccessResponse** diye bir response oluşturabiliriz.
-```
-    public class AccountCreateSuccessResponse {
-    	
-    	private String message;
-    	private int accountNumber;
-    	
-    	//getters setter, default constructor
-    }
-```
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `body` | `json` | **Required**. Account details |
 
-ve return kısmında ResponseEntity içinde bunu dönebiliriz. Burada HTTP status kodunun uygun şekilde kullanılmasını bekliyorum. (2xx'lerden birisi).
-
-Bu bir create işlemidir lütfen HTTP methodunuzu buna göre seçin.
-
-### Webservice 2 ###
-Bu servis direk olarak accountun detayını getiren servis olacaktır arkadaşlar. AccountNumber URL'den path olarak alınacaktır.
-
-#### Önemli nokta ####
-Arkadaşlar burada accountları accounts.txt'ye kaydederken(veya her accounta özel dosyaya) sizden birde her account için son güncelleme tarihi gibi bir bilgiyi de kaydetmenizi istiyorum. Bu bilgi account yaratılırken yaratılma anıdır, güncelleme oldugunda(mesela transfer veya para yatırma) bu süre güncellemenin yapıldıgı an olacaktır. Ve detay cevabında LAST MODIFIED headerina bu değeri vermenizi istiyorum.
-
-Hatırlayın ResponseEntity sınıfı şu şekilde bu headeri set edebiliyordu.
-```
-    ResponseEntity
-    .ok()
-    .lastModified(1656759150L)
-```
-
-Burasi timestamp alıyordu unutmayın. Yani milisaniye cinsinden bir değer. (Burası da opsiyoneldir, yapanlar artı puan alacaktır.)
-
-### Webservice 3 ###
-
-İkinci webservisimiz hesaba para yukleyecektir arkadaşlar. Buraya yapılan istek JSON şeklinde sadece yüklenecek miktarı alacaktır.
+If account is successfully created, returns a JSON response in the following format:
 
 ```json
 {
-    "amount" : 100
+  "message" : "Account successfully created",
+  "accountNumber" : "9758876081"
 }
 ```
 
-Burada hangi account oldugu bilgisi sizinde bildiğiniz gibi URL'de gelecektir.(Path parametresi). Ve biz istek yapılan hesabın bakiyesini accounts.txt'de gelen amount parametresi kadar artıracağız arkadaşlar. Ve cevap olarak Account nesnesini full bir şekilde döneceğiz arkadaşlar.
+If account type is invalid, returns a JSON response in the following format:
 
 ```json
-    {
-        "accountNumber" : "2341231231"
-        "name" : "Abdullah",
-        "surname" : "Yavuz",
-        "email" : "bootcamp@bootcamp.com",
-        "tc" : "12121212121",
-        "balance" : 100
-        "type" : "TL"
-    }
+{
+  "message" : "Invalid account type: Expected TRY, USD or XAU but got EUR"
+}
 ```
 
-Buradada istek JSON gelecek. Buna göre uygun request sınıfını oluşturmanızı bekliyorum arkadaşlar. Cevap direk Account nesnesini döndüğü için onda özel bir sınıfa ihtiyacımız yoktur.
+#### Get account
 
-Bu işlem sonrası ayrı bir dosyaya(logs.txt)'ye log tutulmasını istiyorum arkadaşlar. Logun formatı
-```
-    hesap_no[space]operation_type[space]operation_detail
-```
-şeklinde olacaktır. Yani örnek bir log şu şekilde olacaktır;
-```
-    2341231231 deposit amount:100
+```http
+GET /api/accounts/${accountNumber}
 ```
 
-Arkadaşlar bu bir update işlemidir temelde. Onun için uygun HTTP methodunu seçmenizi bekliyorum. (PATCH veya PUT)
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `accountNumber` | `string` | **Required**. Account number |
 
-### Webservice 4 ###
+If account number is valid, returns a JSON response in the following format:
 
-Bu servisimizde para transferi yapacağız arkadaşlar. Bir hesaptan diğer bir hesaba para aktarımı yapacağız.
-
-Bu servisimizin isteği şu şekilde olacaktır olacaktır arkadaşlar.
 ```json
-    {
-        "transferredAccountNumber" : "4513423423",
-        "amount" : 10
-    }
+{
+  "accountNumber" : "8793740856",
+  "name" : "Abdullah",
+  "surname" : "Yavuz",
+  "email" : "abdullah@bootcamp.com",
+  "idNumber" : "12121212121",
+  "accountType" : "TRY",
+  "balance" : 0.0,
+  "lastUpdated" : 1657928659221
+}
 ```
-Hangi accounttan transfer yapılacağı URL'den belirtilecek arkadaşlar.
-Burada yapacağımız iş gönderilen hesaptan bakiyeyi düşmek, giden hesaptada bakiyeyi artırmaktır.
 
-Bu işlem sonrasındada log tutmanızı istiyorum arkadaşlar. Ornek log şu şekilde olacaktır.
-```
-    2341231231 transfer amount:100,transferred_account:4513423423
+#### Make deposit
+
+```http
+PATCH /api/accounts/${accountNumber}/deposits
 ```
 
-#### ÖNEMLİ NOKTALAR ####
-Burada dikkat edilecek iki nokta vardır.
-* Gonderim yapan hesabın bakiyesinde yeterli miktar olmaması. Bu durumda kullanıcıya uygun HTTP status kodu ile
 ```json
-    {
-        "message" : "Insufficient balance"
-    }
+{
+  "amount" : 100
+}
 ```
-şeklinde mesaj dönmenizi istiyorum.
 
-* İkinci nokta ise transfer yapılan hesapların türünün farklı olması durumunda uygun çevrimi yapmanız gerektiğidir. Yani mesela ben TL hesabından 100 TL'yi bir dolar hesabına transfer ediyorsam o hesabın balance'i dolar miktarından artırılmalıdır. Burada o anki kuru bir dış webservisten(***bir önceki ödevde kullandıgımız collectapi buna dair apilerede sahip, TL-USD veya TL-Altın dönüşümü yapan servisler var***) almanızı bekliyorum.
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `body` | `json` | **Required**. Deposit details |
+| `accountNumber` | `string` | **Required**. Account number |
 
-Eğer işlem başarılı olursa uygun HTTP kodu ile birlikte.
+#### Make transfer
+
+```http
+PATCH /api/accounts/${accountNumber}/transfers
+```
+
 ```json
-    {
-        "message" : "Transferred Successfully"
-    }
-```
-şeklinde bir cevap dönmenizi bekliyorum arkadaşlar.
-
-
-### Webservice 5 ###
-4.cü webservisimiz bir accounta dair yapılan işlemleri dönecek web servisimizdir.
-Bu servise PATH parametresi ile gelen accountNumber okunup logs.txt dosyasında bu accounta dair loglar alınacaktır.
-Logları dönerken logu dosyada tuttugu formatta değil insan tarafından okunabilir bir şekilde dönecektir. Yani mesela
-```
-    2341231231 deposit amount:100
+{
+  "receiverAccountNumber" : "3006665471",
+  "amount" : 100
+}
 ```
 
-Bu logu dönerken 
-  ```
-    2341231231 nolu hesaba 100 [hesap tipi] yatırılmıştır.
-  ```
-Veya bunu dönerken  
-```  
-  2341231231 transfer amount:100,transferred_account:4513423423
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `body` | `json` | **Required**. Transfer details |
+| `accountNumber` | `string` | **Required**. Account number |
+
+#### Get logs
+
+```http
+GET /api/logs
 ```
 
-```  
-  2341231231 hesaptan 4513423423 hesaba 100 [hesap tipi] transfer edilmiştir.
-```
+If request is successful, returns a JSON array in the following format:
 
-şeklinde mesajlar verilecektir. Yani bu servisin cevabı şu şekilde
 ```json
 [
-    {
-        "log" : "2341231231 hesaptan 4513423423 hesaba 100 [hesap tipi] transfer edilmiştir."
-    },
-    {
-        "log" : "2341231231 nolu hesaba 100 [hesap tipi] yatırılmıştır."
-    }
+  "Account 9758876081 deposited 100.000 XAU on 2022-07-16 02:26:50.065",
+  "Account 8793740856 deposited 100.000 TRY on 2022-07-16 02:46:56.308"
 ]
 ```
 
-JSON arrayi olacaktır.
+## Acknowledgements
 
-# NOTLAR
-
-* Arkadaşlar logları alabildiğimiz webservisin başka originlerdende ulaşılabilmesini istiyorum. Mesela siz servislerinizi htp://localhost:6161 de geliştirdiğiniz. Buraya http://localhost:6162 (browser ustunden) domaini altından yapılacak isteklerlede çalışabilmesini bekliyorum. (@CrossOrigin'i hatırlayın). Sadece bu servise özel bir durum, diğerlerinde böyle bir şey olmayacak.
-
-* Arkadaşlar bankacılık sistemlerinde servis geliştirirken URL'leri REST'e uydurmak gerçekten zorlayıcı olabilir. Burada elinizden geleni yapmanızı istiyorum. Zorlandıgınız noktada bazı şartları esnetebilirsiniz.(URL'de action belirtilmez mesela)
-
-* Arkadaşlar dosyada birşeyi güncellemek düşündüğünüz gibi olmayabilir. Dosyada gideyim üçüncü satırdaki bir kısmı güncelleyeyim diye bir olay yoktur. Yani bir hesabın bakiyesini güncellerken yepyeni bir dosyaya eski dosyada ne varsa, bir de güncellediğiniz veriyide yazmanız lazımdır. Bu işlem sonrasında elimizde güncellenmiş bir şekilde yeni bir dosya olacaktır. İşin belkide en kritik kısmı burasıdır. Buna dikkat edin.
-
-* Arkadaşlar loglama işlemi kafka tarafından yapılacaktır
-* Kafka'da logs adında bir topic yaratmanızı ve logları buraya göndermenizi bekliyorum. Burada Kafka-spring entegrasyonu beklemiyorum düz java koduyla yapmanızı bekliyorum arkadaşlar. Dökumanda anlattıgım şekilde.
-* Producer log messajını uygun bir şekilde kafkaya gönderecek ve bir adet consumer logları alıp dosyaya yazma işlemini gerçekleştirecektir arkadaşlar.
-* Arkadaşlar adım adım çalışın, mesela once servisler yazılıp, sonra kafkaya bakılabilir. Daha sonra cors'a ve sondada account detayı getiren serviste LAST modified headerinin setlenmesine bakabilirsiniz.
-
-
-
-
-
-
-
+- [Spring Initializr](https://start.spring.io/)
+- [White House Web API Standards](https://github.com/WhiteHouse/api-standards)
+- [Exception Handling for REST API](https://medium.com/@sampathsl/exception-handling-for-rest-api-with-spring-boot-c5d5ba928f5b) 
+- [Intro to Apache Kafka with Spring](https://www.baeldung.com/spring-kafka)
+- [Patika.dev](https://www.patika.dev/tr)
