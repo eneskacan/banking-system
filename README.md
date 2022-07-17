@@ -147,8 +147,12 @@ If request is successful, returns a JSON array in the following format:
 
 ```json
 [
-  "Account 9758876081 deposited 100.000 XAU on 2022-07-16 02:26:50.065",
-  "Account 8793740856 deposited 100.000 TRY on 2022-07-16 02:46:56.308"
+  {
+    "message": "Account 9758876081 deposited 100.000 XAU on 2022-07-16 02:26:50.065"
+  },
+  {
+    "message": "Account 8793740856 deposited 100.000 TRY on 2022-07-16 02:46:56.308"
+  }
 ]
 ```
 

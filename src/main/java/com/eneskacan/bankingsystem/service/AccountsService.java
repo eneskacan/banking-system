@@ -5,10 +5,11 @@ import com.eneskacan.bankingsystem.mapper.AccountMapper;
 import com.eneskacan.bankingsystem.model.Account;
 import com.eneskacan.bankingsystem.dto.request.AccountCreationRequest;
 import com.eneskacan.bankingsystem.model.AssetTypes;
-import com.eneskacan.bankingsystem.repository.AccountsRepository;
 import com.eneskacan.bankingsystem.dto.response.AccountCreationResponse;
+import com.eneskacan.bankingsystem.repository.IAccountsRepository;
 import com.eneskacan.bankingsystem.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
@@ -17,10 +18,11 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class AccountsService {
-    private final AccountsRepository accountsRepository;
+
+    private final IAccountsRepository accountsRepository;
 
     @Autowired
-    public AccountsService(AccountsRepository accountsRepository) {
+    public AccountsService(@Qualifier("LocalAccountsRepository") IAccountsRepository accountsRepository) {
         this.accountsRepository = accountsRepository;
     }
 
@@ -53,7 +55,7 @@ public class AccountsService {
         account.setLastUpdated(updateTime);
 
         // Create account
-        if(accountsRepository.saveOrUpdateAccount(account)) {
+        if(accountsRepository.saveAccount(account)) {
             return AccountCreationResponse.builder()
                     .message("Account successfully created")
                     .accountNumber(accountNumber)
@@ -74,7 +76,7 @@ public class AccountsService {
     public AccountDTO updateAccount(AccountDTO dto) {
         // Update account details
         Account account = AccountMapper.toAccount(dto);
-        if(accountsRepository.saveOrUpdateAccount(account)) {
+        if(accountsRepository.saveAccount(account)) {
             return dto;
         }
 

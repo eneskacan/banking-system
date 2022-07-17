@@ -1,5 +1,6 @@
 package com.eneskacan.bankingsystem.controller;
 
+import com.eneskacan.bankingsystem.model.Log;
 import com.eneskacan.bankingsystem.service.LogsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,8 +24,8 @@ public class LogsController {
 
     @CrossOrigin("http://localhost:6062")
     @GetMapping
-    public ResponseEntity<List<String>> getLogs() {
-        List<String> logs = logsService.getLogs();
+    public ResponseEntity<List<Log>> getLogs() {
+        List<Log> logs = logsService.getLogs();
         return ResponseEntity
                 .ok()
                 .body(logs);
