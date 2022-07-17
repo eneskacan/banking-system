@@ -21,14 +21,14 @@ public class LocalLogsRepository implements ILogsRepository {
     public boolean saveLog(Log l) {
         FileWriterUtil.writeToFile(
                 String.format("%s%n", l.getMessage()),
-                dataFolder + "\\logs.txt",
+                dataFolder + "logs.txt",
                 true);
         return true;
     }
 
     @Override
     public List<Log> getLogs() {
-        return FileReaderUtil.readFile(dataFolder + "\\logs.txt").stream()
+        return FileReaderUtil.readFile(dataFolder + "logs.txt").stream()
                 .map(Log::new)
                 .collect(Collectors.toList());
     }
