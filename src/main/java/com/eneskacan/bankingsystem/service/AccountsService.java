@@ -45,20 +45,17 @@ public class AccountsService {
             );
         }
 
-        // Generate account number and last updated date
-        final String accountNumber = (long) Math.floor(Math.random() * 9_000_000_000L) + 1_000_000_000L + "";
-        final long updateTime = DateUtil.getTimestamp();
-
-        // Set account number and update time
+        // Set last updated time as now
         Account account = AccountMapper.toAccount(request);
-        account.setAccountNumber(accountNumber);
+        final long updateTime = DateUtil.getTimestamp();
         account.setLastUpdated(updateTime);
 
         // Create account
-        if(accountsRepository.saveAccount(account)) {
+        account = accountsRepository.saveAccount(account);
+        if(account != null) {
             return AccountCreationResponse.builder()
                     .message("Account successfully created")
-                    .accountNumber(accountNumber)
+                    .accountNumber(account.getAccountNumber())
                     .build();
         }
 
@@ -76,7 +73,7 @@ public class AccountsService {
     public AccountDTO updateAccount(AccountDTO dto) {
         // Update account details
         Account account = AccountMapper.toAccount(dto);
-        if(accountsRepository.saveAccount(account)) {
+        if(accountsRepository.saveAccount(account) != null) {
             return dto;
         }
 

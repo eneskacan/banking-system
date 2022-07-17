@@ -15,9 +15,17 @@ public class LocalAccountsRepository implements IAccountsRepository {
     private String folderPath;
 
     @Override
-    public boolean saveAccount(Account a) {
-        final String filePath = String.format("%s%s.txt", folderPath, a.getAccountNumber());
-        return FileWriterUtil.writeToFile(AccountMapper.toCsv(a), filePath, false);
+    public Account saveAccount(Account account) {
+        // Set an id for account
+        final String accountNumber = (long) Math.floor(Math.random() * 9_000_000_000L) + 1_000_000_000L + "";
+        account.setAccountNumber(accountNumber);
+
+        // Save account details to a text file in CSV format
+        final String filePath = String.format("%s%s.txt", folderPath, account.getAccountNumber());
+        FileWriterUtil.writeToFile(AccountMapper.toCsv(account), filePath, false);
+
+        // Return saved account
+        return account;
     }
 
     @Override
