@@ -4,7 +4,6 @@ import com.eneskacan.bankingsystem.dto.generic.AccountDTO;
 import com.eneskacan.bankingsystem.dto.generic.DepositDTO;
 import com.eneskacan.bankingsystem.dto.generic.TransferDTO;
 import com.eneskacan.bankingsystem.mapper.AccountMapper;
-import com.eneskacan.bankingsystem.mapper.TransactionMapper;
 import com.eneskacan.bankingsystem.model.Account;
 import com.eneskacan.bankingsystem.model.AssetTypes;
 import com.eneskacan.bankingsystem.util.DateUtil;
@@ -73,7 +72,7 @@ public class TransactionsService {
                 .assetType(account.getAccountType())
                 .timestamp(now)
                 .build();
-        kafkaTemplate.send("logs", TransactionMapper.toCsv(deposit));
+        kafkaTemplate.send("logs", deposit.toString());
 
         // Return updated account info
         return AccountMapper.toDto(account);
@@ -156,7 +155,7 @@ public class TransactionsService {
                 .receivedAssetType(receiver.getAccountType())
                 .timestamp(now)
                 .build();
-        kafkaTemplate.send("logs", TransactionMapper.toCsv(transfer));
+        kafkaTemplate.send("logs", transfer.toString());
 
         // Return updated account info
         return AccountMapper.toDto(sender);
