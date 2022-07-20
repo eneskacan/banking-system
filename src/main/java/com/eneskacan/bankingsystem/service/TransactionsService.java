@@ -6,10 +6,10 @@ import com.eneskacan.bankingsystem.dto.generic.TransferDTO;
 import com.eneskacan.bankingsystem.mapper.AccountMapper;
 import com.eneskacan.bankingsystem.model.Account;
 import com.eneskacan.bankingsystem.model.AssetTypes;
+import com.eneskacan.bankingsystem.repository.IExchangeRepository;
 import com.eneskacan.bankingsystem.util.DateUtil;
-import com.eneskacan.bankingsystem.util.HttpUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -20,17 +20,18 @@ public class TransactionsService {
 
     private final AccountsService accountsService;
     private final KafkaTemplate<String, String> kafkaTemplate;
+    private final IExchangeRepository exchangeRepository;
 
     private double USD_TRY;
     private double XAU_TRY;
 
-    @Value("${collect.api.token}")
-    private String accessToken;
-
     @Autowired
-    public TransactionsService(AccountsService accountsService, KafkaTemplate<String, String> kafkaTemplate) {
+    public TransactionsService(AccountsService accountsService,
+                               KafkaTemplate<String, String> kafkaTemplate,
+                               @Qualifier("CollectApiExchangeRepository") IExchangeRepository exchangeRepository) {
         this.accountsService = accountsService;
         this.kafkaTemplate = kafkaTemplate;
+        this.exchangeRepository = exchangeRepository;
     }
 
     public AccountDTO deposit(long id, double amount) {
@@ -162,13 +163,8 @@ public class TransactionsService {
     }
 
     private void updateExchangeRates() {
-        // Get US Dollar to Turkish Lira exchange rate
         try {
-            String url = "https://api.collectapi.com/economy/singleCurrency?int=1&tag=USD";
-            USD_TRY = HttpUtil.sendGetRequest(url, accessToken)
-                    .getJSONArray("result")
-                    .getJSONObject(0)
-                    .getDouble("selling");
+            USD_TRY = exchangeRepository.getUsdTryExchangeRate();
         } catch (Exception e) {
             throw new ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
@@ -176,13 +172,8 @@ public class TransactionsService {
             );
         }
 
-        // Get gold price per gram in Turkish Lira
         try {
-            String url = "https://api.collectapi.com/economy/goldPrice";
-            XAU_TRY = HttpUtil.sendGetRequest(url, accessToken)
-                    .getJSONArray("result")
-                    .getJSONObject(0)
-                    .getDouble("selling");
+            XAU_TRY = exchangeRepository.getXauTryExchangeRate();
         } catch (Exception e) {
             throw new ResponseStatusException(
                     HttpStatus.INTERNAL_SERVER_ERROR,
