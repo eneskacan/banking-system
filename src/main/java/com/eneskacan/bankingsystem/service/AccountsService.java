@@ -1,6 +1,7 @@
 package com.eneskacan.bankingsystem.service;
 
 import com.eneskacan.bankingsystem.dto.generic.AccountDTO;
+import com.eneskacan.bankingsystem.exception.InvalidAccountTypeException;
 import com.eneskacan.bankingsystem.mapper.AccountMapper;
 import com.eneskacan.bankingsystem.model.Account;
 import com.eneskacan.bankingsystem.dto.request.AccountCreationRequest;
@@ -12,9 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class AccountsService {
@@ -26,7 +25,7 @@ public class AccountsService {
         this.accountsRepository = accountsRepository;
     }
 
-    public AccountCreationResponse createAccount(AccountCreationRequest request) {
+    public AccountCreationResponse createAccount(AccountCreationRequest request) throws Exception {
         // Check if account type is valid
         boolean isTypeValid = false;
         for(AssetTypes t : AssetTypes.values()) {
@@ -38,11 +37,10 @@ public class AccountsService {
 
         // Throw exception if type is not valid
         if(!isTypeValid) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    String.format("Invalid account type: " +
-                        "Expected TRY, USD or XAU but got %s", request.getType())
-            );
+            String errorMessage = String.format("Invalid account type: " +
+                    "Expected TRY, USD or XAU but got %s", request.getType());
+
+            throw new InvalidAccountTypeException(errorMessage);
         }
 
         // Set last updated time as now
@@ -59,7 +57,7 @@ public class AccountsService {
                     .build();
         }
 
-        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create account");
+        throw new Exception("Failed to create account");
     }
 
     @Cacheable(cacheNames = {"accounts"}, key = "#id")
@@ -70,14 +68,14 @@ public class AccountsService {
     }
 
     @CachePut(cacheNames = {"accounts"}, key="#dto.getId()")
-    public AccountDTO updateAccount(AccountDTO dto) {
+    public AccountDTO updateAccount(AccountDTO dto) throws Exception {
         // Update account details
         Account account = AccountMapper.toAccount(dto);
         if(accountsRepository.saveAccount(account) != null) {
             return dto;
         }
 
-        throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to update account details");
+        throw new Exception("Failed to update account details");
     }
 
     // This method will pause main thread for 5 seconds

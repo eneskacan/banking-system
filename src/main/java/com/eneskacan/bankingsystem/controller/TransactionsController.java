@@ -4,11 +4,13 @@ import com.eneskacan.bankingsystem.dto.generic.AccountDTO;
 import com.eneskacan.bankingsystem.dto.request.DepositCreationRequest;
 import com.eneskacan.bankingsystem.dto.request.TransferCreationRequest;
 import com.eneskacan.bankingsystem.dto.response.ErrorResponse;
+import com.eneskacan.bankingsystem.exception.InsufficientFundsException;
+import com.eneskacan.bankingsystem.exception.InvalidInputException;
 import com.eneskacan.bankingsystem.service.TransactionsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("api/accounts/{id}")
@@ -30,10 +32,14 @@ public class TransactionsController {
                     .ok()
                     .lastModified(account.getLastUpdated())
                     .body(account);
-        } catch (ResponseStatusException e) {
+        } catch (InvalidInputException e) {
             return ResponseEntity
-                    .status(e.getStatus())
-                    .body(new ErrorResponse(e.getReason()));
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse(e.getMessage()));
         }
     }
 
@@ -49,10 +55,18 @@ public class TransactionsController {
                     .ok()
                     .lastModified(account.getLastUpdated())
                     .body(account);
-        } catch (ResponseStatusException e) {
+        } catch (InvalidInputException e) {
             return ResponseEntity
-                    .status(e.getStatus())
-                    .body(new ErrorResponse(e.getReason()));
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse(e.getMessage()));
+        } catch (InsufficientFundsException e) {
+            return ResponseEntity
+                    .status(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .body(new ErrorResponse(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse(e.getMessage()));
         }
     }
 }

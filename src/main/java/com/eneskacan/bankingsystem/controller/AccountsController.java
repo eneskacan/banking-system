@@ -4,6 +4,7 @@ import com.eneskacan.bankingsystem.dto.generic.AccountDTO;
 import com.eneskacan.bankingsystem.dto.request.AccountCreationRequest;
 import com.eneskacan.bankingsystem.dto.response.AccountCreationResponse;
 import com.eneskacan.bankingsystem.dto.response.ErrorResponse;
+import com.eneskacan.bankingsystem.exception.InvalidAccountTypeException;
 import com.eneskacan.bankingsystem.service.AccountsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.CacheControl;
@@ -11,7 +12,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
-import org.springframework.web.server.ResponseStatusException;
 
 @RestController
 @RequestMapping("api/accounts")
@@ -31,10 +31,14 @@ public class AccountsController {
             return ResponseEntity
                     .status(HttpStatus.CREATED)
                     .body(response);
-        } catch (ResponseStatusException e) {
+        } catch (InvalidAccountTypeException e) {
             return ResponseEntity
-                    .status(e.getStatus())
-                    .body(new ErrorResponse(e.getReason()));
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(new ErrorResponse(e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse(e.getMessage()));
         }
     }
 

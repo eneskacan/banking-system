@@ -3,6 +3,9 @@ package com.eneskacan.bankingsystem.service;
 import com.eneskacan.bankingsystem.dto.generic.AccountDTO;
 import com.eneskacan.bankingsystem.dto.generic.DepositDTO;
 import com.eneskacan.bankingsystem.dto.generic.TransferDTO;
+import com.eneskacan.bankingsystem.exception.InsufficientFundsException;
+import com.eneskacan.bankingsystem.exception.InvalidInputException;
+import com.eneskacan.bankingsystem.exception.FailingApiCallException;
 import com.eneskacan.bankingsystem.mapper.AccountMapper;
 import com.eneskacan.bankingsystem.model.Account;
 import com.eneskacan.bankingsystem.model.AssetTypes;
@@ -10,10 +13,8 @@ import com.eneskacan.bankingsystem.repository.IExchangeRepository;
 import com.eneskacan.bankingsystem.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpStatus;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class TransactionsService {
@@ -34,24 +35,20 @@ public class TransactionsService {
         this.exchangeRepository = exchangeRepository;
     }
 
-    public AccountDTO deposit(long id, double amount) {
+    public AccountDTO deposit(long id, double amount) throws Exception {
         AccountDTO accountDTO = accountsService.getAccount(id);
 
         // Check if deposit accounts are valid
         if(accountDTO == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Account number is invalid"
-            );
+            throw new InvalidInputException("Account number is invalid");
         }
 
         // Check if amount is valid
         if(amount <= 0) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    String.format("Deposit amount is not valid: %s %s",
-                            amount, accountDTO.getAccountType())
-            );
+            String errorMesage = String.format("Deposit amount is not valid: %s %s",
+                    amount, accountDTO.getAccountType());
+
+            throw new InvalidInputException(errorMesage);
         }
 
         // Update account balance
@@ -79,34 +76,34 @@ public class TransactionsService {
         return AccountMapper.toDto(account);
     }
 
-    public AccountDTO transfer(long senderId, double amount, long receiverId) {
+    public AccountDTO transfer(long senderId, double amount, long receiverId) throws Exception {
         AccountDTO senderDTO = accountsService.getAccount(senderId);
         AccountDTO receiverDTO = accountsService.getAccount(receiverId);
 
-        // Check if sender and receiver accounts are valid
-        if(senderDTO == null || receiverDTO == null) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    "Account number is invalid"
-            );
+        // Check if sender account is valid
+        if(senderDTO == null) {
+            throw new InvalidInputException("Sender account number is invalid");
+        }
+
+        // Check if receiver account is valid
+        if(receiverDTO == null) {
+            throw new InvalidInputException("Receiver account number is invalid");
         }
 
         // Check if amount is valid
         if(amount <= 0) {
-            throw new ResponseStatusException(
-                    HttpStatus.BAD_REQUEST,
-                    String.format("Transfer amount is not valid: %s %s",
-                            amount, senderDTO.getAccountType())
-            );
+            String errorMessage = String.format("Transfer amount is not valid: %s %s",
+                    amount, senderDTO.getAccountType());
+
+            throw new InvalidInputException(errorMessage);
         }
 
         // Check if sender has sufficient funds
         if(senderDTO.getBalance() < amount) {
-            throw new ResponseStatusException(
-                    HttpStatus.UNPROCESSABLE_ENTITY,
-                    String.format("Sender account does not have enough funds: %s %s",
-                            senderDTO.getBalance(), senderDTO.getAccountType())
-            );
+            String errorMessage = String.format("Sender account does not have enough funds: %s %s",
+                    senderDTO.getBalance(), senderDTO.getAccountType());
+
+            throw new InsufficientFundsException(errorMessage);
         }
 
         // Convert amount if accounts have different asset types
@@ -162,23 +159,21 @@ public class TransactionsService {
         return AccountMapper.toDto(sender);
     }
 
-    private void updateExchangeRates() {
+    private void updateExchangeRates() throws FailingApiCallException {
         try {
             USD_TRY = exchangeRepository.getUsdTryExchangeRate();
         } catch (Exception e) {
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    String.format("Failed to get TRY/USD exchange data: %s", e)
-            );
+            String errorMessage = String.format("Failed to get TRY/USD exchange data: %s", e);
+
+            throw new FailingApiCallException(errorMessage);
         }
 
         try {
             XAU_TRY = exchangeRepository.getXauTryExchangeRate();
         } catch (Exception e) {
-            throw new ResponseStatusException(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    String.format("Failed to get TRY/XAU exchange data: %s", e)
-            );
+            String errorMessage = String.format("Failed to get TRY/XAU exchange data: %s", e);
+
+            throw new FailingApiCallException(errorMessage);
         }
     }
 }
