@@ -4,5 +4,5 @@ import com.eneskacan.bankingsystem.model.Account;
 
 public interface IAccountsRepository {
     Account saveAccount(Account a);
-    Account getAccount(String accountNumber);
+    Account getAccount(long id);
 }

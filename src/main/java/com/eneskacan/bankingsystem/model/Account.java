@@ -6,13 +6,14 @@ import lombok.*;
 @Builder
 public class Account {
 
-    private String accountNumber;
+    private long id;
     private final String name;
     private final String surname;
     private final String email;
     private final String idNumber;
     private final AssetTypes accountType;
     private long lastUpdated;
+    private int isDeleted;
 
     @Setter(AccessLevel.NONE)
     private double balance = 0;

@@ -33,8 +33,8 @@ public class TransactionsService {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public AccountDTO deposit(String accountNumber, double amount) {
-        AccountDTO accountDTO = accountsService.getAccount(accountNumber);
+    public AccountDTO deposit(long id, double amount) {
+        AccountDTO accountDTO = accountsService.getAccount(id);
 
         // Check if deposit accounts are valid
         if(accountDTO == null) {
@@ -67,7 +67,7 @@ public class TransactionsService {
 
         // Log
         DepositDTO deposit = DepositDTO.builder()
-                .accountNumber(accountNumber)
+                .id(id)
                 .amount(amount)
                 .assetType(account.getAccountType())
                 .timestamp(now)
@@ -78,9 +78,9 @@ public class TransactionsService {
         return AccountMapper.toDto(account);
     }
 
-    public AccountDTO transfer(String accountNumber, double amount, String receiverAccountNumber) {
-        AccountDTO senderDTO = accountsService.getAccount(accountNumber);
-        AccountDTO receiverDTO = accountsService.getAccount(receiverAccountNumber);
+    public AccountDTO transfer(long senderId, double amount, long receiverId) {
+        AccountDTO senderDTO = accountsService.getAccount(senderId);
+        AccountDTO receiverDTO = accountsService.getAccount(receiverId);
 
         // Check if sender and receiver accounts are valid
         if(senderDTO == null || receiverDTO == null) {
@@ -147,8 +147,8 @@ public class TransactionsService {
 
         // Log
         TransferDTO transfer = TransferDTO.builder()
-                .sender(accountNumber)
-                .receiver(receiverAccountNumber)
+                .senderId(senderId)
+                .receiverId(receiverId)
                 .amount(amount)
                 .assetType(sender.getAccountType())
                 .receivedAmount(amount * exchangeRate)

@@ -38,10 +38,10 @@ public class AccountsController {
         }
     }
 
-    @GetMapping("/{accountNumber}")
+    @GetMapping("/{id}")
     @ResponseBody
-    public ResponseEntity<?> getAccount(@PathVariable String accountNumber, WebRequest request) {
-        AccountDTO account = accountsService.getAccount(accountNumber);
+    public ResponseEntity<?> getAccount(@PathVariable long id, WebRequest request) {
+        AccountDTO account = accountsService.getAccount(id);
 
         // Check if account is modified
         if(request.checkNotModified(account.getLastUpdated())) {

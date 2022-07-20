@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class TransferCreationRequest {
-    private final String receiverAccountNumber;
+    private final long receiverId;
     private final double amount;
 }

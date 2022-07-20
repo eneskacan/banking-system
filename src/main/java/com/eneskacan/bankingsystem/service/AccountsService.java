@@ -55,21 +55,21 @@ public class AccountsService {
         if(account != null) {
             return AccountCreationResponse.builder()
                     .message("Account successfully created")
-                    .accountNumber(account.getAccountNumber())
+                    .id(account.getId())
                     .build();
         }
 
         throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create account");
     }
 
-    @Cacheable(cacheNames = {"accounts"}, key = "#accountNumber")
-    public AccountDTO getAccount(String accountNumber) {
+    @Cacheable(cacheNames = {"accounts"}, key = "#id")
+    public AccountDTO getAccount(long id) {
         simulateBackendCall();
-        Account account = accountsRepository.getAccount(accountNumber);
+        Account account = accountsRepository.getAccount(id);
         return AccountMapper.toDto(account);
     }
 
-    @CachePut(cacheNames = {"accounts"}, key="#dto.getAccountNumber()")
+    @CachePut(cacheNames = {"accounts"}, key="#dto.getId()")
     public AccountDTO updateAccount(AccountDTO dto) {
         // Update account details
         Account account = AccountMapper.toAccount(dto);

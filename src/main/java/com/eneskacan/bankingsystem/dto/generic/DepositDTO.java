@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 @Builder
 public class DepositDTO {
-    private final String accountNumber;
+    private final long id;
     private final double amount;
     private final AssetTypes assetType;
     private final long timestamp;
@@ -16,6 +16,6 @@ public class DepositDTO {
     @Override
     public String toString() {
         return String.format("Account %s deposited %.3f %s on %s",
-                accountNumber, amount, assetType, DateUtil.timestampToDate(timestamp));
+                id, amount, assetType, DateUtil.timestampToDate(timestamp));
     }
 }

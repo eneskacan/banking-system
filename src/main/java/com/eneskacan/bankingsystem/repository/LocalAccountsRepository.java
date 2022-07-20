@@ -17,11 +17,11 @@ public class LocalAccountsRepository implements IAccountsRepository {
     @Override
     public Account saveAccount(Account account) {
         // Set an id for account
-        final String accountNumber = (long) Math.floor(Math.random() * 9_000_000_000L) + 1_000_000_000L + "";
-        account.setAccountNumber(accountNumber);
+        final long id = (long) Math.floor(Math.random() * 9_000_000_000L) + 1_000_000_000L;
+        account.setId(id);
 
         // Save account details to a text file in CSV format
-        final String filePath = String.format("%s%s.txt", folderPath, account.getAccountNumber());
+        final String filePath = String.format("%s%s.txt", folderPath, account.getId());
         FileWriterUtil.writeToFile(AccountMapper.toCsv(account), filePath, false);
 
         // Return saved account
@@ -29,8 +29,8 @@ public class LocalAccountsRepository implements IAccountsRepository {
     }
 
     @Override
-    public Account getAccount(String accountNumber) {
-        final String filePath = String.format("%s%s.txt", folderPath, accountNumber);
+    public Account getAccount(long id) {
+        final String filePath = String.format("%s%s.txt", folderPath, id);
         return AccountMapper.toAccount(FileReaderUtil.readFile(filePath).get(0));
     }
 }

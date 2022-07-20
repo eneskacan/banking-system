@@ -7,5 +7,5 @@ import lombok.Data;
 @Builder
 public class AccountCreationResponse {
     private final String message;
-    private final String accountNumber;
+    private final long id;
 }

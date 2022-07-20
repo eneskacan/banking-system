@@ -65,7 +65,7 @@ If account is successfully created, returns a JSON response in the following for
 ```json
 {
   "message" : "Account successfully created",
-  "accountNumber" : "9758876081"
+  "id" : "9758876081"
 }
 ```
 
@@ -80,18 +80,18 @@ If account type is invalid, returns a JSON response in the following format:
 #### Get account
 
 ```http
-GET /api/accounts/${accountNumber}
+GET /api/accounts/${id}
 ```
 
-| Parameter | Type | Description |
-| :--- | :--- | :--- |
-| `accountNumber` | `string` | **Required**. Account number |
+| Parameter | Type  | Description |
+|:----------|:------| :--- |
+| `id`      | `int` | **Required**. Account number |
 
 If account number is valid, returns a JSON response in the following format:
 
 ```json
 {
-  "accountNumber" : "8793740856",
+  "id" : "8793740856",
   "name" : "Abdullah",
   "surname" : "Yavuz",
   "email" : "abdullah@bootcamp.com",
@@ -105,7 +105,7 @@ If account number is valid, returns a JSON response in the following format:
 #### Make deposit
 
 ```http
-PATCH /api/accounts/${accountNumber}/deposits
+PATCH /api/accounts/${id}/deposits
 ```
 
 ```json
@@ -114,28 +114,28 @@ PATCH /api/accounts/${accountNumber}/deposits
 }
 ```
 
-| Parameter | Type | Description |
-| :--- | :--- | :--- |
-| `body` | `json` | **Required**. Deposit details |
-| `accountNumber` | `string` | **Required**. Account number |
+| Parameter | Type   | Description |
+|:----------|:-------| :--- |
+| `body`    | `json` | **Required**. Deposit details |
+| `id`      | `int`  | **Required**. Account number |
 
 #### Make transfer
 
 ```http
-PATCH /api/accounts/${accountNumber}/transfers
+PATCH /api/accounts/${id}/transfers
 ```
 
 ```json
 {
-  "receiverAccountNumber" : "3006665471",
+  "receiverId" : "3006665471",
   "amount" : 100
 }
 ```
 
-| Parameter | Type | Description |
-| :--- | :--- | :--- |
+| Parameter | Type   | Description |
+| :--- |:-------| :--- |
 | `body` | `json` | **Required**. Transfer details |
-| `accountNumber` | `string` | **Required**. Account number |
+| `receiverId` | `int`  | **Required**. Account number |
 
 #### Get logs
 
