@@ -3,9 +3,7 @@ package com.eneskacan.bankingsystem.service;
 import com.eneskacan.bankingsystem.dto.generic.AccountDTO;
 import com.eneskacan.bankingsystem.dto.generic.DepositDTO;
 import com.eneskacan.bankingsystem.dto.generic.TransferDTO;
-import com.eneskacan.bankingsystem.exception.InsufficientFundsException;
-import com.eneskacan.bankingsystem.exception.InvalidInputException;
-import com.eneskacan.bankingsystem.exception.FailingApiCallException;
+import com.eneskacan.bankingsystem.exception.*;
 import com.eneskacan.bankingsystem.mapper.AccountMapper;
 import com.eneskacan.bankingsystem.model.Account;
 import com.eneskacan.bankingsystem.model.AssetTypes;
@@ -15,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+
+import javax.security.auth.login.AccountNotFoundException;
 
 @Service
 public class TransactionsService {
@@ -35,13 +35,9 @@ public class TransactionsService {
         this.exchangeRepository = exchangeRepository;
     }
 
-    public AccountDTO deposit(long id, double amount) throws Exception {
+    public AccountDTO deposit(long id, double amount)
+            throws AccountNotFoundException, DeletedAccountException, InvalidInputException, UnexpectedErrorException {
         AccountDTO accountDTO = accountsService.getAccount(id);
-
-        // Check if deposit accounts are valid
-        if(accountDTO == null) {
-            throw new InvalidInputException("Account number is invalid");
-        }
 
         // Check if amount is valid
         if(amount <= 0) {
@@ -76,19 +72,11 @@ public class TransactionsService {
         return AccountMapper.toDto(account);
     }
 
-    public AccountDTO transfer(long senderId, double amount, long receiverId) throws Exception {
+    public AccountDTO transfer(long senderId, double amount, long receiverId)
+            throws AccountNotFoundException, DeletedAccountException, InvalidInputException,
+            InsufficientFundsException, FailingApiCallException, UnexpectedErrorException {
         AccountDTO senderDTO = accountsService.getAccount(senderId);
         AccountDTO receiverDTO = accountsService.getAccount(receiverId);
-
-        // Check if sender account is valid
-        if(senderDTO == null) {
-            throw new InvalidInputException("Sender account number is invalid");
-        }
-
-        // Check if receiver account is valid
-        if(receiverDTO == null) {
-            throw new InvalidInputException("Receiver account number is invalid");
-        }
 
         // Check if amount is valid
         if(amount <= 0) {

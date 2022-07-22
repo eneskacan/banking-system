@@ -1,7 +1,9 @@
 package com.eneskacan.bankingsystem.service;
 
 import com.eneskacan.bankingsystem.dto.generic.AccountDTO;
+import com.eneskacan.bankingsystem.exception.DeletedAccountException;
 import com.eneskacan.bankingsystem.exception.InvalidAccountTypeException;
+import com.eneskacan.bankingsystem.exception.UnexpectedErrorException;
 import com.eneskacan.bankingsystem.mapper.AccountMapper;
 import com.eneskacan.bankingsystem.model.Account;
 import com.eneskacan.bankingsystem.dto.request.AccountCreationRequest;
@@ -11,9 +13,12 @@ import com.eneskacan.bankingsystem.repository.IAccountsRepository;
 import com.eneskacan.bankingsystem.util.DateUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+
+import javax.security.auth.login.AccountNotFoundException;
 
 @Service
 public class AccountsService {
@@ -25,7 +30,7 @@ public class AccountsService {
         this.accountsRepository = accountsRepository;
     }
 
-    public AccountCreationResponse createAccount(AccountCreationRequest request) throws Exception {
+    public AccountCreationResponse createAccount(AccountCreationRequest request) throws InvalidAccountTypeException, UnexpectedErrorException {
         // Check if account type is valid
         boolean isTypeValid = false;
         for(AssetTypes t : AssetTypes.values()) {
@@ -35,7 +40,7 @@ public class AccountsService {
             }
         }
 
-        // Throw exception if type is not valid
+        // Check if account type is valid
         if(!isTypeValid) {
             String errorMessage = String.format("Invalid account type: " +
                     "Expected TRY, USD or XAU but got %s", request.getType());
@@ -49,33 +54,56 @@ public class AccountsService {
         account.setLastUpdated(updateTime);
 
         // Create account
-        account = accountsRepository.saveAccount(account);
-        if(account != null) {
-            return AccountCreationResponse.builder()
-                    .message("Account successfully created")
-                    .id(account.getId())
-                    .build();
+        account = accountsRepository.createAccount(account);
+
+        // Return here if fails to create the account
+        if(account == null) {
+            throw new UnexpectedErrorException("Failed to create account");
         }
 
-        throw new Exception("Failed to create account");
+        return AccountCreationResponse.builder()
+                .message("Account successfully created")
+                .id(account.getId())
+                .build();
     }
 
     @Cacheable(cacheNames = {"accounts"}, key = "#id")
-    public AccountDTO getAccount(long id) {
+    public AccountDTO getAccount(long id) throws DeletedAccountException, AccountNotFoundException {
         simulateBackendCall();
+
         Account account = accountsRepository.getAccount(id);
+
+        if(account == null) {
+            throw new AccountNotFoundException("Account is not found: " + id);
+        }
+
+        if(account.getIsDeleted() == 1) {
+            throw new DeletedAccountException("Account is deleted: " + id);
+        }
+
         return AccountMapper.toDto(account);
     }
 
     @CachePut(cacheNames = {"accounts"}, key="#dto.getId()")
-    public AccountDTO updateAccount(AccountDTO dto) throws Exception {
+    public AccountDTO updateAccount(AccountDTO dto) throws UnexpectedErrorException {
         // Update account details
         Account account = AccountMapper.toAccount(dto);
-        if(accountsRepository.saveAccount(account) != null) {
+
+        // Save updated details
+        if(accountsRepository.updateAccount(account) != null) {
             return dto;
         }
 
-        throw new Exception("Failed to update account details");
+        throw new UnexpectedErrorException("Failed to update account details");
+    }
+
+    @CacheEvict(cacheNames = {"accounts"}, key="#id")
+    public boolean deleteAccount(long id) throws DeletedAccountException, AccountNotFoundException {
+        // Get account details
+        AccountDTO accountDTO = getAccount(id);
+
+        // Delete account
+        return accountsRepository.deleteAccount(AccountMapper.toAccount(accountDTO));
     }
 
     // This method will pause main thread for 5 seconds
