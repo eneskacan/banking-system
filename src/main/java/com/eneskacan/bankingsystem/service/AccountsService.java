@@ -69,7 +69,7 @@ public class AccountsService {
 
     @Cacheable(cacheNames = {"accounts"}, key = "#id")
     public AccountDTO getAccount(long id) throws DeletedAccountException, AccountNotFoundException {
-        simulateBackendCall();
+        // simulateBackendCall();
 
         Account account = accountsRepository.getAccount(id);
 
