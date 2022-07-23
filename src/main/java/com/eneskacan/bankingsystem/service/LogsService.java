@@ -15,7 +15,7 @@ public class LogsService {
     private final ILogsRepository logsRepository;
 
     @Autowired
-    public LogsService(@Qualifier("JdbcLogsRepository") ILogsRepository logsRepository) {
+    public LogsService(@Qualifier("MyBatisLogsRepository") ILogsRepository logsRepository) {
         this.logsRepository = logsRepository;
     }
 

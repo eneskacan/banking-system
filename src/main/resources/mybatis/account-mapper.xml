@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace = "com.eneskacan.bankingsystem.mybatis.AccountMapper">
+    <insert id="save" parameterType="Account" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO accounts (name, surname, email, id_number, account_type, balance, last_updated, is_deleted)
+        VALUES (#{name}, #{surname}, #{email}, #{idNumber}, #{accountType}, #{balance}, #{lastUpdated}, #{isDeleted})
+    </insert>
+
+    <update id="update" parameterType="Account">
+        UPDATE accounts SET balance = #{balance}, last_updated = #{lastUpdated}, is_deleted = #{isDeleted} WHERE id = #{id}
+    </update>
+
+    <select id="findById" parameterType="long" resultType="Account">
+        SELECT * FROM accounts WHERE id = #{id}
+    </select>
+</mapper>

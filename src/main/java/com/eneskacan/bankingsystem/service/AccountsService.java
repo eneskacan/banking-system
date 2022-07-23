@@ -26,7 +26,7 @@ public class AccountsService {
     private final IAccountsRepository accountsRepository;
 
     @Autowired
-    public AccountsService(@Qualifier("JdbcAccountsRepository") IAccountsRepository accountsRepository) {
+    public AccountsService(@Qualifier("MyBatisAccountsRepository") IAccountsRepository accountsRepository) {
         this.accountsRepository = accountsRepository;
     }
 
