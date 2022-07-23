@@ -41,22 +41,22 @@ public class TransactionsService {
 
         // Check if amount is valid
         if(amount <= 0) {
-            String errorMesage = String.format("Deposit amount is not valid: %s %s",
+            String errorMessage = String.format("Deposit amount is not valid: %s %s",
                     amount, accountDTO.getAccountType());
 
-            throw new InvalidInputException(errorMesage);
+            throw new InvalidInputException(errorMessage);
         }
 
         // Update account balance
         Account account = AccountMapper.toAccount(accountDTO);
         account.deposit(amount);
-        accountDTO = AccountMapper.toDto(account);
 
         // Update last update date
         long now = DateUtil.getTimestamp();
         account.setLastUpdated(now);
 
         // Save updated account
+        accountDTO = AccountMapper.toDto(account);
         accountsService.updateAccount(accountDTO);
 
         // Log
