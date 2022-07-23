@@ -1,0 +1,24 @@
+CREATE DATABASE IF NOT EXISTS `patika`;
+USE `patika`;
+
+DROP TABLE IF EXISTS `accounts`;
+DROP TABLE IF EXISTS `logs`;
+
+CREATE TABLE IF NOT EXISTS `accounts`(
+    `id`			INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    `name`			VARCHAR(100) NOT NULL,
+    `surname`		VARCHAR(100) NOT NULL,
+    `email`			VARCHAR(100) NOT NULL,
+    `id_number`		VARCHAR(100) NOT NULL,
+    `account_type`	VARCHAR(100) NOT NULL,
+    `balance`       DECIMAL(12, 3) NOT NULL,
+    `last_updated`	TIMESTAMP NOT NULL,
+    `is_deleted`	TINYINT(1) NOT NULL
+);
+
+ALTER TABLE `accounts` AUTO_INCREMENT = 1000000000;
+
+CREATE TABLE IF NOT EXISTS `logs`(
+    `id`			INTEGER NOT NULL PRIMARY KEY AUTO_INCREMENT,
+    `message`		VARCHAR(500) NOT NULL
+);
