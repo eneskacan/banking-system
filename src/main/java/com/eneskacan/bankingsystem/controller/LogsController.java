@@ -1,8 +1,11 @@
 package com.eneskacan.bankingsystem.controller;
 
+import com.eneskacan.bankingsystem.dto.response.ErrorResponse;
+import com.eneskacan.bankingsystem.exception.UnexpectedErrorException;
 import com.eneskacan.bankingsystem.model.Log;
 import com.eneskacan.bankingsystem.service.LogsService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,10 +27,16 @@ public class LogsController {
 
     @CrossOrigin("http://localhost:6062")
     @GetMapping
-    public ResponseEntity<List<Log>> getLogs() {
-        List<Log> logs = logsService.getLogs();
-        return ResponseEntity
-                .ok()
-                .body(logs);
+    public ResponseEntity<?> getLogs() {
+        try {
+            List<Log> logs = logsService.getLogs();
+            return ResponseEntity
+                    .ok()
+                    .body(logs);
+        } catch (UnexpectedErrorException e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse(e.getMessage()));
+        }
     }
 }

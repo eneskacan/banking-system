@@ -57,6 +57,10 @@ public class AccountsController {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .body(new ErrorResponse(e.getMessage()));
+        } catch (UnexpectedErrorException e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse(e.getMessage()));
         }
 
         // Check if account is modified
@@ -82,6 +86,10 @@ public class AccountsController {
         } catch (AccountNotFoundException | DeletedAccountException e) {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponse(e.getMessage()));
+        } catch (UnexpectedErrorException e) {
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ErrorResponse(e.getMessage()));
         }
 

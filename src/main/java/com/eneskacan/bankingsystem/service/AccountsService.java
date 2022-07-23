@@ -26,7 +26,7 @@ public class AccountsService {
     private final IAccountsRepository accountsRepository;
 
     @Autowired
-    public AccountsService(@Qualifier("LocalAccountsRepository") IAccountsRepository accountsRepository) {
+    public AccountsService(@Qualifier("JdbcAccountsRepository") IAccountsRepository accountsRepository) {
         this.accountsRepository = accountsRepository;
     }
 
@@ -56,11 +56,6 @@ public class AccountsService {
         // Create account
         account = accountsRepository.createAccount(account);
 
-        // Return here if fails to create the account
-        if(account == null) {
-            throw new UnexpectedErrorException("Failed to create account");
-        }
-
         return AccountCreationResponse.builder()
                 .message("Account successfully created")
                 .id(account.getId())
@@ -68,7 +63,7 @@ public class AccountsService {
     }
 
     @Cacheable(cacheNames = {"accounts"}, key = "#id")
-    public AccountDTO getAccount(long id) throws DeletedAccountException, AccountNotFoundException {
+    public AccountDTO getAccount(long id) throws DeletedAccountException, AccountNotFoundException, UnexpectedErrorException {
         // simulateBackendCall();
 
         Account account = accountsRepository.getAccount(id);
@@ -98,7 +93,7 @@ public class AccountsService {
     }
 
     @CacheEvict(cacheNames = {"accounts"}, key="#id")
-    public boolean deleteAccount(long id) throws DeletedAccountException, AccountNotFoundException {
+    public boolean deleteAccount(long id) throws DeletedAccountException, AccountNotFoundException, UnexpectedErrorException {
         // Get account details
         AccountDTO accountDTO = getAccount(id);
 
