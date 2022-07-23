@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.security.auth.login.AccountNotFoundException;
 import java.sql.Timestamp;
@@ -73,6 +74,7 @@ public class TransactionsService {
         return AccountMapper.toDto(account);
     }
 
+    @Transactional
     public AccountDTO transfer(long senderId, double amount, long receiverId)
             throws AccountNotFoundException, DeletedAccountException, InvalidInputException,
             InsufficientFundsException, FailingApiCallException, UnexpectedErrorException {
