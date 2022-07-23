@@ -34,8 +34,8 @@ public class JdbcAccountsRepository implements IAccountsRepository {
             ps.setString(4, account.getIdNumber()); // set id number
             ps.setString(5, account.getAccountType().toString()); // set account type
             ps.setDouble(6, account.getBalance()); // set balance
-            ps.setTimestamp(7, new Timestamp(account.getLastUpdated())); // set update time
-            ps.setInt(8, account.getIsDeleted()); // set is deleted flag
+            ps.setTimestamp(7,  account.getLastUpdated()); // set update time
+            ps.setBoolean(8, account.isDeleted()); // set is deleted flag
 
             // Execute query
             int affectedRows = ps.executeUpdate();
@@ -68,8 +68,8 @@ public class JdbcAccountsRepository implements IAccountsRepository {
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             // Fill fields in prepared statement
             ps.setDouble(1, account.getBalance()); // set balance
-            ps.setTimestamp(2, new Timestamp(account.getLastUpdated())); // set update time
-            ps.setInt(3, account.getIsDeleted()); // set is deleted flag
+            ps.setTimestamp(2, account.getLastUpdated()); // set update time
+            ps.setBoolean(3, account.isDeleted()); // set is deleted flag
             ps.setLong(4, account.getId()); // set id number
 
             // Execute query
@@ -107,8 +107,8 @@ public class JdbcAccountsRepository implements IAccountsRepository {
                         .email(rs.getString("email"))
                         .idNumber(rs.getString("id_number"))
                         .accountType(AssetTypes.valueOf(rs.getString("account_type")))
-                        .lastUpdated(rs.getTimestamp("last_updated").getTime())
-                        .isDeleted(rs.getInt("is_deleted"))
+                        .lastUpdated(rs.getTimestamp("last_updated"))
+                        .isDeleted(rs.getBoolean("is_deleted"))
                         .build();
             }
         } catch (SQLException e) {
@@ -120,9 +120,9 @@ public class JdbcAccountsRepository implements IAccountsRepository {
 
     @Override
     public boolean deleteAccount(Account account) throws UnexpectedErrorException {
-        account.setIsDeleted(1); // set deleted flag as true
+        account.setDeleted(true); // set deleted flag as true
         Account updatedAccount = updateAccount(account);
 
-        return updatedAccount != null && updatedAccount.getIsDeleted() == 1;
+        return updatedAccount != null && updatedAccount.isDeleted();
     }
 }

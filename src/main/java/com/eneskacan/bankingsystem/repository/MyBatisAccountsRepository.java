@@ -38,9 +38,9 @@ public class MyBatisAccountsRepository implements IAccountsRepository {
 
     @Override
     public boolean deleteAccount(Account account) {
-        account.setIsDeleted(1); // set deleted flag as true
+        account.setDeleted(true); // set deleted flag as true
         Account updatedAccount = updateAccount(account);
 
-        return updatedAccount != null && updatedAccount.getIsDeleted() == 1;
+        return updatedAccount != null && updatedAccount.isDeleted();
     }
 }

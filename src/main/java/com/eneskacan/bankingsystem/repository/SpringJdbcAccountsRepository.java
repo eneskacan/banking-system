@@ -33,9 +33,9 @@ public class SpringJdbcAccountsRepository implements IAccountsRepository{
 
     @Override
     public boolean deleteAccount(Account account) {
-        account.setIsDeleted(1); // set deleted flag true
+        account.setDeleted(true); // set deleted flag true
         Account updatedAccount = updateAccount(account);
 
-        return updatedAccount != null && updatedAccount.getIsDeleted() == 1;
+        return updatedAccount != null && updatedAccount.isDeleted();
     }
 }

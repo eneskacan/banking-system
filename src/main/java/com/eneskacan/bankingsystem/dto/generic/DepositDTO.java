@@ -5,17 +5,19 @@ import com.eneskacan.bankingsystem.util.DateUtil;
 import lombok.Builder;
 import lombok.Data;
 
+import java.sql.Timestamp;
+
 @Data
 @Builder
 public class DepositDTO {
     private final long id;
     private final double amount;
     private final AssetTypes assetType;
-    private final long timestamp;
+    private final Timestamp timestamp;
 
     @Override
     public String toString() {
         return String.format("Account %s deposited %.3f %s on %s",
-                id, amount, assetType, DateUtil.timestampToDate(timestamp));
+                id, amount, assetType, timestamp);
     }
 }

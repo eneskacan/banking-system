@@ -5,6 +5,8 @@ import com.eneskacan.bankingsystem.util.DateUtil;
 import lombok.Builder;
 import lombok.Data;
 
+import java.sql.Timestamp;
+
 @Data
 @Builder
 public class TransferDTO {
@@ -14,12 +16,12 @@ public class TransferDTO {
     private final AssetTypes assetType;
     private final double receivedAmount;
     private final AssetTypes receivedAssetType;
-    private final long timestamp;
+    private final Timestamp timestamp;
 
     @Override
     public String toString() {
         return String.format("Account %s transferred %.3f %s (%.3f %s) to account %s on %s",
                 senderId, amount, assetType, receivedAmount, receivedAssetType,
-                receiverId, DateUtil.timestampToDate(timestamp));
+                receiverId, timestamp);
     }
 }

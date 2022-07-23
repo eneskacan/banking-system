@@ -64,7 +64,7 @@ public class AccountsController {
         }
 
         // Check if account is modified
-        if(request.checkNotModified(account.getLastUpdated())) {
+        if(request.checkNotModified(account.getLastUpdated().getTime())) {
             return ResponseEntity
                     .status(HttpStatus.NOT_MODIFIED)
                     .build();
@@ -73,7 +73,7 @@ public class AccountsController {
         return ResponseEntity
                 .ok()
                 .cacheControl(CacheControl.noCache())
-                .lastModified(account.getLastUpdated())
+                .lastModified(account.getLastUpdated().getTime())
                 .body(account);
     }
 

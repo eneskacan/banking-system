@@ -59,7 +59,7 @@ public class LocalAccountsRepository implements IAccountsRepository {
     @Override
     public boolean deleteAccount(Account account) {
         // Set deleted flag as true
-        account.setIsDeleted(1);
+        account.setDeleted(true);
 
         // Save account
         Account updatedAccount = updateAccount(account);

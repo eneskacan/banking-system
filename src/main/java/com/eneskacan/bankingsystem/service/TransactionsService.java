@@ -15,6 +15,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.security.auth.login.AccountNotFoundException;
+import java.sql.Timestamp;
 
 @Service
 public class TransactionsService {
@@ -52,7 +53,7 @@ public class TransactionsService {
         account.deposit(amount);
 
         // Update last update date
-        long now = DateUtil.getTimestamp();
+        Timestamp now = DateUtil.getTimestamp();
         account.setLastUpdated(now);
 
         // Save updated account
@@ -113,7 +114,7 @@ public class TransactionsService {
         }
 
         // Get current time
-        long now = DateUtil.getTimestamp();
+        Timestamp now = DateUtil.getTimestamp();
 
         // Reduce sender account balance
         Account sender = AccountMapper.toAccount(senderDTO);

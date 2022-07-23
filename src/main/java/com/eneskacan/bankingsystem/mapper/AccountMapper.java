@@ -5,6 +5,7 @@ import com.eneskacan.bankingsystem.model.Account;
 import com.eneskacan.bankingsystem.dto.request.AccountCreationRequest;
 import com.eneskacan.bankingsystem.model.AssetTypes;
 
+import java.sql.Timestamp;
 import java.util.Locale;
 
 public final class AccountMapper {
@@ -25,8 +26,8 @@ public final class AccountMapper {
                 .idNumber(values[4])
                 .accountType(AssetTypes.valueOf(values[5]))
                 .balance(Double.parseDouble(values[6]))
-                .lastUpdated(Long.parseLong(values[7]))
-                .isDeleted(Integer.parseInt(values[8]))
+                .lastUpdated(new Timestamp(Long.parseLong(values[7])))
+                .isDeleted(Boolean.parseBoolean(values[8]))
                 .build();
     }
 
@@ -72,6 +73,6 @@ public final class AccountMapper {
     // Transforms Account objects to coma separated values
     public static String toCsv(Account a) {
         return String.format("%s,%s,%s,%s,%s,%s,%.3f,%s,%s%n", a.getId(), a.getName(), a.getSurname(),
-                a.getEmail(), a.getIdNumber(), a.getAccountType(), a.getBalance(), a.getLastUpdated(), a.getIsDeleted());
+                a.getEmail(), a.getIdNumber(), a.getAccountType(), a.getBalance(), a.getLastUpdated(), a.isDeleted());
     }
 }

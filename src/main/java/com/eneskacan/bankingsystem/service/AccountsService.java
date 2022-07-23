@@ -50,8 +50,7 @@ public class AccountsService {
 
         // Set last updated time as now
         Account account = AccountMapper.toAccount(request);
-        final long updateTime = DateUtil.getTimestamp();
-        account.setLastUpdated(updateTime);
+        account.setLastUpdated(DateUtil.getTimestamp());
 
         // Create account
         account = accountsRepository.createAccount(account);
@@ -72,7 +71,7 @@ public class AccountsService {
             throw new AccountNotFoundException("Account is not found: " + id);
         }
 
-        if(account.getIsDeleted() == 1) {
+        if(account.isDeleted()) {
             throw new DeletedAccountException("Account is deleted: " + id);
         }
 

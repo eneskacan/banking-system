@@ -30,7 +30,7 @@ public class TransactionsController {
             AccountDTO account = transactionsService.deposit(id, request.getAmount());
             return ResponseEntity
                     .ok()
-                    .lastModified(account.getLastUpdated())
+                    .lastModified(account.getLastUpdated().getTime())
                     .body(account);
         } catch (InvalidInputException e) {
             return ResponseEntity
@@ -56,7 +56,7 @@ public class TransactionsController {
                     request.getReceiverId());
             return ResponseEntity
                     .ok()
-                    .lastModified(account.getLastUpdated())
+                    .lastModified(account.getLastUpdated().getTime())
                     .body(account);
         } catch (InvalidInputException e) {
             return ResponseEntity

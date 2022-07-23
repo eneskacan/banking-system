@@ -4,6 +4,8 @@ import com.eneskacan.bankingsystem.model.AssetTypes;
 import lombok.Builder;
 import lombok.Data;
 
+import java.sql.Timestamp;
+
 @Data
 @Builder
 public class AccountDTO {
@@ -14,5 +16,5 @@ public class AccountDTO {
     private final String idNumber;
     private final AssetTypes accountType;
     private final double balance;
-    private final long lastUpdated;
+    private final Timestamp lastUpdated;
 }
